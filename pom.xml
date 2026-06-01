@@ -19,6 +19,9 @@
              Die Release-Pipeline überschreibt das per -Dgithub.repository=${GITHUB_REPOSITORY}. -->
         <github.repository>SvenWirz/task-engine</github.repository>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Zentrale Spring-Boot-Version für alle Module (von beiden Modulen
+             über den importierten spring-boot-dependencies-BOM genutzt). -->
+        <spring-boot.version>4.0.6</spring-boot.version>
     </properties>
 
     <modules>
