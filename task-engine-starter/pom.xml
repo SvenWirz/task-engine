@@ -19,7 +19,7 @@
         <java.version>21</java.version>
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring-boot.version>3.3.5</spring-boot.version>
+        <spring-boot.version>4.0.6</spring-boot.version>
         <!-- Über die von Spring Boot 3.3 verwaltete 1.19.x angehoben: neuere docker-java
              verhandelt die API-Version mit aktuellen Docker-Daemons (>= 27) korrekt. -->
         <testcontainers.version>1.21.3</testcontainers.version>
