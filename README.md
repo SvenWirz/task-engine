@@ -171,6 +171,47 @@ taskengine:
 
 ---
 
+## Schema-Bereitstellung (Flyway / DDL)
+
+Der Starter liefert die Schema-Migration `V1__task_engine.sql` unter
+`db/migration/` mit (`task`-Tabelle, Indizes, `pg_notify`-Trigger). Es gibt zwei
+Wege, das Schema in der einbettenden Anwendung anzulegen:
+
+**1. Flyway (empfohlen).** Liegt Flyway auf dem Classpath, wird die mitgelieferte
+Migration beim Start automatisch angewendet. Die Flyway-Abhängigkeiten sind im
+Starter `optional` deklariert (damit der DDL-Weg ohne Flyway nutzbar bleibt) und
+sind daher **nicht transitiv** — die Anwendung muss sie selbst deklarieren:
+
+```xml
+<dependency>
+    <groupId>org.flywaydb</groupId>
+    <artifactId>flyway-core</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.flywaydb</groupId>
+    <artifactId>flyway-database-postgresql</artifactId>
+</dependency>
+<!-- Erforderlich seit Spring Boot 4: Die Flyway-Auto-Configuration liegt nicht
+     mehr im Core-Modul, sondern in einem eigenen Artefakt. Ohne dieses wird die
+     Migration nicht ausgeführt und die `task`-Tabelle fehlt. -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-flyway</artifactId>
+</dependency>
+```
+
+> **Migration zu Spring Boot 4:** Vor 4.0 war die Flyway-Auto-Configuration Teil
+> von `spring-boot-autoconfigure` und damit immer präsent. Seit 4.0 ist sie in
+> `spring-boot-flyway` ausgelagert; ein Upgrade ohne diese Abhängigkeit äußert
+> sich als `relation "task" does not exist` zur Laufzeit.
+
+**2. Standalone-DDL.** Ohne Flyway kann das Schema aus `V1__task_engine.sql`
+(bzw. einem äquivalenten DDL-Skript) manuell oder über das eigene
+Migrations-Tooling der Anwendung eingespielt werden. Trigger und alle Indizes
+müssen dabei mit übernommen werden.
+
+---
+
 ## Öffentliche API
 
 - `TaskService.enqueue(type, payload[, priority][, idempotencyKey])`, `enqueueAt(...)`, `enqueueAfter(...)`.
