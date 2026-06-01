@@ -22,7 +22,7 @@
         <spring-boot.version>3.3.5</spring-boot.version>
         <!-- Über die von Spring Boot 3.3 verwaltete 1.19.x angehoben: neuere docker-java
              verhandelt die API-Version mit aktuellen Docker-Daemons (>= 27) korrekt. -->
-        <testcontainers.version>1.21.3</testcontainers.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
     </properties>
 
     <dependencyManagement>
