@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # Maven dependencies across the reactor (parent + modules share group config).
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      spring-boot:
+        patterns:
+          - "org.springframework.boot:*"
+      testing:
+        patterns:
+          - "org.testcontainers:*"
+          - "org.awaitility:*"
+          - "com.h2database:*"
+
+  # Keep the GitHub Actions in the CI workflow current.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly

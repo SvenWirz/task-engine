@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="3"> <!-- Auto-Refresh für die Live-Ansicht -->
+    <title>Task-Engine Demo</title>
+    <style>
+        :root { --bg:#0f172a; --card:#1e293b; --muted:#94a3b8; --fg:#e2e8f0; --accent:#38bdf8; }
+        * { box-sizing: border-box; }
+        body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--fg); }
+        header { padding:1rem 1.5rem; border-bottom:1px solid #334155; display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+        h1 { font-size:1.25rem; margin:0; }
+        a { color:var(--accent); }
+        main { padding:1.5rem; max-width:1200px; margin:0 auto; }
+        .counts { display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+        .chip { background:var(--card); border:1px solid #334155; border-radius:8px; padding:.5rem .9rem; min-width:90px; }
+        .chip .n { font-size:1.4rem; font-weight:700; display:block; }
+        .chip .l { color:var(--muted); font-size:.75rem; text-transform:uppercase; letter-spacing:.05em; }
+        .panel { background:var(--card); border:1px solid #334155; border-radius:10px; padding:1rem 1.25rem; margin-bottom:1.25rem; }
+        .panel h2 { font-size:.95rem; margin:.2rem 0 .8rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+        form.inline { display:inline; }
+        .controls { display:flex; gap:.6rem; align-items:end; flex-wrap:wrap; }
+        label { display:block; font-size:.75rem; color:var(--muted); margin-bottom:.2rem; }
+        select, input[type=number] { background:#0f172a; color:var(--fg); border:1px solid #475569; border-radius:6px; padding:.45rem .5rem; }
+        button { background:var(--accent); color:#04293a; border:0; border-radius:6px; padding:.5rem .9rem; font-weight:600; cursor:pointer; }
+        button.secondary { background:#475569; color:var(--fg); }
+        button.danger { background:#475569; color:#fecaca; }
+        .msg { background:#064e3b; border:1px solid #10b981; color:#d1fae5; padding:.6rem .9rem; border-radius:8px; margin-bottom:1rem; }
+        table { width:100%; border-collapse:collapse; font-size:.85rem; }
+        th, td { text-align:left; padding:.45rem .5rem; border-bottom:1px solid #334155; }
+        th { color:var(--muted); font-weight:600; }
+        .status { font-weight:700; padding:.1rem .5rem; border-radius:6px; font-size:.75rem; }
+        .PENDING{ background:#1e3a8a; } .RUNNING{ background:#0e7490; } .SUCCEEDED{ background:#065f46; }
+        .FAILED{ background:#7c2d12; } .DEAD{ background:#7f1d1d; } .CANCELLED{ background:#374151; }
+        code { color:#cbd5e1; }
+        .id { color:var(--muted); font-family: monospace; font-size:.7rem; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>⚙️ Task-Engine Demo</h1>
+    <span style="color:var(--muted)">Live-Ansicht (Auto-Refresh 3s)</span>
+    <span style="flex:1"></span>
+    <a href="/taskengine/tasks" target="_blank">REST-API</a>
+    <a href="/actuator/prometheus" target="_blank">Prometheus-Metriken</a>
+    <a href="/actuator/health" target="_blank">Health</a>
+</header>
+
+<main>
+    <div class="msg" th:if="${message}" th:text="${message}"></div>
+
+    <div class="counts">
+        <div class="chip"><span class="n" th:text="${counts.pending}">0</span><span class="l">Pending</span></div>
+        <div class="chip"><span class="n" th:text="${counts.running}">0</span><span class="l">Running</span></div>
+        <div class="chip"><span class="n" th:text="${counts.succeeded}">0</span><span class="l">Succeeded</span></div>
+        <div class="chip"><span class="n" th:text="${counts.failed}">0</span><span class="l">Failed</span></div>
+        <div class="chip"><span class="n" th:text="${counts.dead}">0</span><span class="l">Dead</span></div>
+        <div class="chip"><span class="n" th:text="${counts.cancelled}">0</span><span class="l">Cancelled</span></div>
+    </div>
+
+    <div class="panel">
+        <h2>Tasks einreihen</h2>
+        <form class="controls" method="post" action="/enqueue">
+            <div>
+                <label>Typ</label>
+                <select name="type">
+                    <option value="email">email (typisierter Payload)</option>
+                    <option value="report">report (langläufig, Timeout)</option>
+                    <option value="flaky">flaky (~50% Fehler → Retry/DEAD)</option>
+                </select>
+            </div>
+            <div>
+                <label>Priorität</label>
+                <input type="number" name="priority" value="0" style="width:80px">
+            </div>
+            <div>
+                <label>Anzahl</label>
+                <input type="number" name="count" value="5" min="1" max="100" style="width:80px">
+            </div>
+            <button type="submit">Einreihen</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>R0-Garantie demonstrieren</h2>
+        <p style="color:var(--muted); margin-top:0">
+            Reiht eine Task innerhalb einer Transaktion ein, die anschließend mit einer Exception
+            abbricht. Erwartung: <strong>keine</strong> Task entsteht.
+        </p>
+        <form class="inline" method="post" action="/enqueue-and-rollback">
+            <input type="hidden" name="type" value="email">
+            <button type="submit" class="secondary">Enqueue + Rollback (R0)</button>
+        </form>
+        <form class="inline" method="post" action="/retry-dead">
+            <button type="submit" class="secondary">Alle DEAD erneut versuchen</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Tasks</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Typ</th><th>Status</th><th>Prio</th><th>Versuche</th>
+                <th>Verfügbar ab</th><th>Letzter Fehler</th><th>ID</th><th>Aktionen</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${tasks}">
+                <td th:text="${t.type}">email</td>
+                <td><span class="status" th:classappend="${t.status}" th:text="${t.status}">PENDING</span></td>
+                <td th:text="${t.priority}">0</td>
+                <td th:text="${t.attempts} + '/' + ${t.maxAttempts}">0/5</td>
+                <td th:text="${#temporals.format(t.availableAt, 'HH:mm:ss')}">--</td>
+                <td><code th:text="${t.lastError != null ? (t.lastError.length() > 60 ? t.lastError.substring(0,60) + '…' : t.lastError) : ''}"></code></td>
+                <td class="id" th:text="${#strings.substring(t.id, 0, 8)}">--</td>
+                <td>
+                    <form class="inline" method="post" th:action="@{'/tasks/' + ${t.id} + '/retry'}">
+                        <button type="submit" class="secondary">Retry</button>
+                    </form>
+                    <form class="inline" method="post" th:action="@{'/tasks/' + ${t.id} + '/cancel'}">
+                        <button type="submit" class="secondary">Cancel</button>
+                    </form>
+                    <form class="inline" method="post" th:action="@{'/tasks/' + ${t.id} + '/delete'}">
+                        <button type="submit" class="danger">Del</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${tasks.isEmpty()}">
+                <td colspan="8" style="color:var(--muted); text-align:center; padding:1.5rem">
+                    Noch keine Tasks — oben welche einreihen.
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

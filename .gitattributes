@@ -1,0 +1,25 @@
+# Normalise line endings: store everything as LF in the repository,
+# check out with the platform-native ending unless overridden below.
+* text=auto
+
+# Source and config files are always LF in the repo.
+*.java   text eol=lf
+*.xml    text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.json   text eol=lf
+*.sql    text eol=lf
+*.md     text eol=lf
+*.html   text eol=lf
+*.properties text eol=lf
+
+# Maven wrapper: the POSIX script must stay LF, the Windows script CRLF.
+mvnw     text eol=lf
+mvnw.cmd text eol=crlf
+
+# Binary artefacts — never normalise or diff as text.
+*.jar    binary
+*.png    binary
+*.jpg    binary
+*.gif    binary
+*.ico    binary

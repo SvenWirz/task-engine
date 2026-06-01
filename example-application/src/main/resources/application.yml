@@ -1,0 +1,44 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: task-engine-example
+  datasource:
+    url: jdbc:postgresql://localhost:5432/taskengine
+    username: taskengine
+    password: taskengine
+  flyway:
+    enabled: true          # legt das V1-Schema des Starters an (Tabelle, Trigger, Indizes)
+  sql:
+    init:
+      mode: never
+
+taskengine:
+  enabled: true            # Worker-Seite aktiv
+  concurrency: 6
+  poll-interval: 5s        # Sicherheitsnetz; primär weckt LISTEN/NOTIFY
+  api:
+    enabled: true          # REST-API des Starters unter /taskengine zusätzlich verfügbar
+  processor-limits:
+    report:
+      per-node: 2          # höchstens 2 Reports gleichzeitig pro Knoten (R15)
+  retention:
+    succeeded: 1h
+    strategy: DELETE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: task-engine-example
+
+logging:
+  level:
+    io.github.svenwirz: INFO

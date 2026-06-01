@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.github.svenwirz</groupId>
+    <artifactId>task-engine-parent</artifactId>
+    <version>${revision}</version>
+    <packaging>pom</packaging>
+    <name>Task-Engine (Aggregator)</name>
+    <description>Aggregiert den Starter und die Beispielanwendung.</description>
+
+    <properties>
+        <!-- Single Source of Truth für die Version aller Module (CI-Friendly Versions).
+             Lokal gilt der Default unten; beim Release per -Drevision=<tag-version> überschrieben. -->
+        <revision>0.1.0-SNAPSHOT</revision>
+        <!-- GitHub-Packages-Ziel im Format OWNER/REPO.
+             Die Release-Pipeline überschreibt das per -Dgithub.repository=${GITHUB_REPOSITORY}. -->
+        <github.repository>SvenWirz/task-engine</github.repository>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <modules>
+        <module>task-engine-starter</module>
+        <module>example-application</module>
+    </modules>
+
+    <!-- Veröffentlichungsziel: GitHub Packages (Maven-Registry des Repos). -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/${github.repository}</url>
+        </repository>
+    </distributionManagement>
+
+    <build>
+        <plugins>
+            <!-- Ersetzt ${revision} im installierten/veröffentlichten POM durch die echte
+                 Version, damit dort keine Platzhalter landen (CI-Friendly Versions). -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>flatten</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>flatten-clean</id>
+                        <phase>clean</phase>
+                        <goals><goal>clean</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

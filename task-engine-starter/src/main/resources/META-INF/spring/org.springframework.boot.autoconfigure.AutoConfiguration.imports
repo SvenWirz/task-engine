@@ -1,0 +1,4 @@
+io.github.svenwirz.autoconfigure.TaskEngineMetricsAutoConfiguration
+io.github.svenwirz.autoconfigure.TaskEngineAutoConfiguration
+io.github.svenwirz.autoconfigure.TaskEngineActuatorAutoConfiguration
+io.github.svenwirz.autoconfigure.TaskEngineWebAutoConfiguration

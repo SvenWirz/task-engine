@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: task-engine-example
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # Die Anwendung läuft auf dem Host (mvn spring-boot:run).
+      - targets: ["host.docker.internal:8080"]

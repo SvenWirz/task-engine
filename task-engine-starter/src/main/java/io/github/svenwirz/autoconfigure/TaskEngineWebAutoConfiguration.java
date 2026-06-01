@@ -1,0 +1,33 @@
+package io.github.svenwirz.autoconfigure;
+
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.github.svenwirz.api.TaskService;
+import io.github.svenwirz.persistence.TaskRepository;
+import io.github.svenwirz.rest.TaskController;
+
+/**
+ * Registriert die REST-API (R13), wenn Spring MVC auf dem Classpath ist (R7) und
+ * {@code taskengine.api.enabled=true} gesetzt wurde.
+ *
+ * <p>Hinweis: Die Endpunkte sind ungeschützt — Authn/Authz liegt bei der einbettenden
+ * Anwendung.
+ */
+@AutoConfiguration(after = TaskEngineAutoConfiguration.class)
+@ConditionalOnClass(RestController.class)
+@ConditionalOnProperty(prefix = "taskengine.api", name = "enabled", havingValue = "true")
+public class TaskEngineWebAutoConfiguration {
+
+    @Bean
+    @ConditionalOnBean({TaskRepository.class, TaskService.class})
+    @ConditionalOnMissingBean
+    public TaskController taskEngineController(TaskRepository repository, TaskService taskService) {
+        return new TaskController(repository, taskService);
+    }
+}
